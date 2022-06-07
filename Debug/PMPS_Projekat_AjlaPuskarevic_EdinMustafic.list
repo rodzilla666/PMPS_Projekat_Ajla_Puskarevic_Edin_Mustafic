@@ -29,23 +29,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  12 .ARM.attributes 00000030  00000000  00000000  000300d0  2**0
                   CONTENTS, READONLY
- 13 .debug_info   000235bc  00000000  00000000  00030100  2**0
+ 13 .debug_info   000235b5  00000000  00000000  00030100  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_abbrev 00005edd  00000000  00000000  000536bc  2**0
+ 14 .debug_abbrev 00005eb0  00000000  00000000  000536b5  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_aranges 00001868  00000000  00000000  000595a0  2**3
+ 15 .debug_aranges 00001868  00000000  00000000  00059568  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_ranges 000015b8  00000000  00000000  0005ae08  2**3
+ 16 .debug_ranges 000015b8  00000000  00000000  0005add0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  00029340  00000000  00000000  0005c3c0  2**0
+ 17 .debug_macro  00029340  00000000  00000000  0005c388  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   00027cfa  00000000  00000000  00085700  2**0
+ 18 .debug_line   00027cf7  00000000  00000000  000856c8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    000cf6a3  00000000  00000000  000ad3fa  2**0
+ 19 .debug_str    000cf6a3  00000000  00000000  000ad3bf  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000050  00000000  00000000  0017ca9d  2**0
+ 20 .comment      00000050  00000000  00000000  0017ca62  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  00006390  00000000  00000000  0017caf0  2**2
+ 21 .debug_frame  00006390  00000000  00000000  0017cab4  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -4250,34 +4250,26 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_PIN)
  8001cf8:	20000364 	.word	0x20000364
 
 08001cfc <main>:
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
+
+void SystemClock_Config(void);
+void MX_USB_HOST_Process(void);
+
 int main(void)
 {
  8001cfc:	b580      	push	{r7, lr}
  8001cfe:	b082      	sub	sp, #8
  8001d00:	af00      	add	r7, sp, #0
-  /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+  LIS3DSH_InitTypeDef myAccConfigDef;
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
  8001d02:	f000 fce7 	bl	80026d4 <HAL_Init>
-  /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
 
-  /* Configure the system clock */
   SystemClock_Config();
  8001d06:	f000 f951 	bl	8001fac <SystemClock_Config>
-  /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
  8001d0a:	f7ff fd33 	bl	8001774 <MX_GPIO_Init>
   MX_I2C1_Init();
@@ -4292,7 +4284,6 @@ int main(void)
  8001d1e:	f007 fdc9 	bl	80098b4 <MX_FATFS_Init>
   MX_SPI1_Init();
  8001d22:	f000 f9b3 	bl	800208c <MX_SPI1_Init>
-  /* USER CODE BEGIN 2 */
 
   MX_DriverVbusFS(0);
  8001d26:	2000      	movs	r0, #0
@@ -4320,8 +4311,6 @@ int main(void)
  8001d44:	4811      	ldr	r0, [pc, #68]	; (8001d8c <main+0x90>)
  8001d46:	f7ff f8b3 	bl	8000eb0 <LIS3DSH_Init>
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
    while (1)
      {
        MX_USB_HOST_Process();
@@ -4377,9 +4366,9 @@ int main(void)
  8001d98:	20000360 	.word	0x20000360
 
 08001d9c <HandleTilt>:
-  * @brief System Clock Configuration
-  * @retval None
-  */
+       }
+     }
+}
 
 void HandleTilt()
 {
@@ -4706,8 +4695,6 @@ void SystemClock_Config(void)
  8001fcc:	60da      	str	r2, [r3, #12]
  8001fce:	611a      	str	r2, [r3, #16]
 
-  /** Configure the main internal regulator output voltage
-  */
   __HAL_RCC_PWR_CLK_ENABLE();
  8001fd0:	2300      	movs	r3, #0
  8001fd2:	60bb      	str	r3, [r7, #8]
@@ -4735,9 +4722,6 @@ void SystemClock_Config(void)
  8002004:	607b      	str	r3, [r7, #4]
  8002006:	687b      	ldr	r3, [r7, #4]
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
  8002008:	2301      	movs	r3, #1
  800200a:	623b      	str	r3, [r7, #32]
@@ -4774,8 +4758,6 @@ void SystemClock_Config(void)
  800203c:	f000 f820 	bl	8002080 <Error_Handler>
   }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
  8002040:	230f      	movs	r3, #15
  8002042:	60fb      	str	r3, [r7, #12]
@@ -4815,10 +4797,7 @@ void SystemClock_Config(void)
  800207c:	40007000 	.word	0x40007000
 
 08002080 <Error_Handler>:
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+
 void Error_Handler(void)
 {
  8002080:	b480      	push	{r7}
@@ -4832,8 +4811,6 @@ __STATIC_FORCEINLINE void __disable_irq(void)
  8002084:	b672      	cpsid	i
 }
  8002086:	bf00      	nop
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
  8002088:	e7fe      	b.n	8002088 <Error_Handler+0x8>
