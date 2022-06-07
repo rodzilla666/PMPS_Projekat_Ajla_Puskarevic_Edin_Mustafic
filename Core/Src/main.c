@@ -18,16 +18,22 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "usb_host.h"
-#include "gpio.h"
-#include "MY_LIS3DSH.h"
-#include <stdio.h>
+#include "dma.h"
+#include "fatfs.h"
 #include "i2c.h"
 #include "i2s.h"
 #include "spi.h"
+#include "usb_host.h"
+#include "gpio.h"
+#include "MY_LIS3DSH.h"
+#include "File_Handling.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+
+LIS3DSH_DataRaw myData;
+int tiltedLeft, tiltedRight, tiltedForward, tiltedBack, isFinished;
 
 /* USER CODE END Includes */
 
@@ -55,10 +61,6 @@
 void SystemClock_Config(void);
 void MX_USB_HOST_Process(void);
 
-
-LIS3DSH_DataRaw myData;
-int tiltedLeft, tiltedRight, tiltedForward, tiltedBack, isFinished;
-
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -74,6 +76,7 @@ int tiltedLeft, tiltedRight, tiltedForward, tiltedBack, isFinished;
   */
 int main(void)
 {
+
   LIS3DSH_InitTypeDef myAccConfigDef;
   /* USER CODE BEGIN 1 */
 
@@ -99,9 +102,13 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_I2S3_Init();
-  MX_SPI1_Init();
+  MX_DMA_Init();
   MX_USB_HOST_Init();
+  MX_FATFS_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+
+  MX_DriverVbusFS(0);
 
   myAccConfigDef.dataRate = LIS3DSH_DATARATE_12_5;
    myAccConfigDef.fullScale = LIS3DSH_FULLSCALE_4;
@@ -117,13 +124,22 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  while(!isFinished)
-	  {
-		  HandleTilt();
-	  }
+    /* USER CODE END WHILE */
+    MX_USB_HOST_Process();
+
+    while(!isFinished)
+   	  {
+   		  HandleTilt();
+   	  }
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
 
 void HandleTilt()
 {
@@ -213,9 +229,14 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
+  /** Configure the main internal regulator output voltage
+  */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -229,6 +250,8 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
@@ -242,26 +265,38 @@ void SystemClock_Config(void)
   }
 }
 
-int _write(int file, char *ptr, int len)
-{
-	int DataIdx;
-	for(DataIdx=0; DataIdx < len; DataIdx++)
-	{
-		ITM_SendChar(*ptr++);
-	}
-	return len;
-}
+/* USER CODE BEGIN 4 */
 
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
   }
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
 }
-#endif
+#endif /* USE_FULL_ASSERT */
