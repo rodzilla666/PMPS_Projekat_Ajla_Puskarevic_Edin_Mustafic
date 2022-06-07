@@ -130,6 +130,7 @@ int main(void)
     while(!isFinished)
    	  {
    		  HandleTilt();
+   		  ;
    	  }
     /* USER CODE BEGIN 3 */
   }
