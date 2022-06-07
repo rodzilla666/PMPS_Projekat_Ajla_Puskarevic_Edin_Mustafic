@@ -1,0 +1,9 @@
+../Core/Src/AUDIO_LINK.c:18:13:I2Cx_Init	8	static
+../Core/Src/AUDIO_LINK.c:37:13:I2Cx_WriteData	40	static
+../Core/Src/AUDIO_LINK.c:49:16:I2Cx_ReadData	40	static
+../Core/Src/AUDIO_LINK.c:63:13:I2Cx_Error	8	static
+../Core/Src/AUDIO_LINK.c:70:13:I2Cx_MspInit	48	static
+../Core/Src/AUDIO_LINK.c:97:6:AUDIO_IO_Init	32	static
+../Core/Src/AUDIO_LINK.c:120:6:AUDIO_IO_DeInit	4	static
+../Core/Src/AUDIO_LINK.c:125:6:AUDIO_IO_Write	16	static
+../Core/Src/AUDIO_LINK.c:130:9:AUDIO_IO_Read	16	static

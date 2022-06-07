@@ -27,6 +27,8 @@
 #include "gpio.h"
 #include "MY_LIS3DSH.h"
 #include "File_Handling.h"
+#include "waveplayer.h"
+#include "AUDIO_LINK.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -34,6 +36,30 @@
 
 LIS3DSH_DataRaw myData;
 int tiltedLeft, tiltedRight, tiltedForward, tiltedBack, isFinished;
+
+uint32_t lastVolume = 0;
+
+extern ApplicationTypeDef Appli_state;
+extern AUDIO_PLAYBACK_StateTypeDef AudioState;
+
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_PIN)
+{
+	if(GPIO_PIN == GPIO_PIN_0)
+	{
+		if(AudioState == AUDIO_STATE_PLAY)
+		{
+			lastVolume = GetCurrentVolume();
+			AudioState = AUDIO_STATE_PAUSE;
+			AUDIO_OUT_SetVolume(0);
+		}
+		else if(AudioState == AUDIO_STATE_PAUSE)
+		{
+			AudioState = AUDIO_STATE_PLAY;
+			AUDIO_OUT_SetVolume(lastVolume);
+		}
+	}
+}
 
 /* USER CODE END Includes */
 
@@ -122,18 +148,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-    MX_USB_HOST_Process();
+   while (1)
+     {
+       MX_USB_HOST_Process();
 
-    while(!isFinished)
-   	  {
-   		  HandleTilt();
-   		  ;
-   	  }
-    /* USER CODE BEGIN 3 */
-  }
+       if(Appli_state == APPLICATION_READY)
+       {
+       	Mount_USB();
+       	AUDIO_PLAYER_Start(0);
+       	while(!isFinished)
+       	{
+
+       		if(AudioState != AUDIO_STATE_PAUSE)
+       		{
+       			AUDIO_PLAYER_Process(TRUE);
+       		}
+       		HandleTilt();
+       		if(AudioState == AUDIO_STATE_STOP)
+       		{
+       			isFinished = 1;
+       		}
+       	}
+
+       }
+     }
   /* USER CODE END 3 */
 }
 
@@ -151,6 +189,7 @@ void HandleTilt()
 		{
 			// TITED RIGHT
 			tiltedRight = 1;
+			AudioState = AUDIO_STATE_NEXT;
 			if(tiltedLeft == 1)
 			{
 				HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
@@ -162,6 +201,7 @@ void HandleTilt()
 		{
 			// TILTED LEFT
 			tiltedLeft = 1;
+			AudioState = AUDIO_STATE_PREVIOUS;
 			if(tiltedRight == 1)
 			{
 				HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
@@ -190,6 +230,7 @@ void HandleTilt()
 		{
 			// TILTED FORWARD
 			tiltedForward = 1;
+			AudioState = AUDIO_STATE_VOLUME_UP;
 			if(tiltedBack == 1)
 			{
 				HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
@@ -201,6 +242,7 @@ void HandleTilt()
 		{
 			// TILTED BACK
 			tiltedBack = 1;
+			AudioState = AUDIO_STATE_VOLUME_DOWN;
 			if(tiltedForward == 1)
 			{
 				HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
